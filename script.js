@@ -1,5 +1,5 @@
-var vis = function(id) {
-    d3.select("#name_input")
+var vis = function(root) {
+    root.select(".name_input")
         .on("keypress", function(d) {
             if(d3.event.keyCode == 13) {
                 add_node("dummy");
@@ -12,7 +12,7 @@ var vis = function(id) {
     var color = d3.scaleOrdinal(d3.schemeCategory10);
 
     var tick = function() {
-        d3.select(id)
+        root
             .selectAll(".node")
             .data(nodes)
             .attr("transform", function(d) { return "translate(" + d["x"] + "," + d["y"] + ")"; });
@@ -24,14 +24,15 @@ var vis = function(id) {
             .force("y", d3.forceY(function(d) { return d["ty"];}))
             .on("tick", tick);
 
-    function add_node(name) {
+    var add_node = function(name) {
         var new_node = {name: name, x: cx, y:cy, tx: 500, ty: 500};
         nodes.push(new_node);
         assign_groups();
         sim.nodes(nodes);
         render();
         return new_node;
-    }
+    };
+
     function assign_groups() {
         var groups = [{x: 500, y: 500}, {x: 100, y:100}];
         for(var i = 0; i < nodes.length; i++) {
@@ -42,9 +43,9 @@ var vis = function(id) {
     }
 
     var render = function () {
-        var svg = d3.select(id);
-        cx = get_svg(id, "width") / 2;
-        cy = get_svg(id, "height") / 2;
+        var svg = root.select('svg');
+        cx = get_svg(root, "width") / 2;
+        cy = get_svg(root, "height") / 2;
         var nodes_select = svg.selectAll(".node")
                 .data(nodes);
 
@@ -97,29 +98,42 @@ var vis = function(id) {
             add_node: add_node};
 };
 
-function get_svg(id, style) {
-    return parseInt(d3.select(id).style(style));
+function get_svg(root, style) {
+    return parseInt(root.select('svg').style(style));
 }
 
+function create_component(parent, id) {
+    var root = d3
+        .select(parent)
+        .append('div');
+    root
+        .append("input")
+        .attr("type", "text");
+    root
+        .append("svg")
+        .attr("id", id)
+        .style("width", "100%")
+        .style("height", "100%");
+
+    return root;
+};
 
 QUnit.test( "hello test", function( assert ) {
-    assert.ok(!isNaN(get_svg("#main", "width")));
+    var root = d3.select('#main');
+    assert.ok(!isNaN(get_svg(root, "width")));
 });
 
 QUnit.test("Add node", function(assert) {
-    var new_node = vis('#main').add_node("test");
+    var root = d3.select("#main");
+    var new_node = vis(root).add_node("test");
     assert.ok(new_node.hasOwnProperty("x"));
 });
 
 QUnit.test("Data-binding", function(assert) {
-    d3.select("#qunit-fixture")
-        .append("svg")
-        .attr("id", "temp")
-        .style("width", "100%")
-        .style("height", "100%");
+    var root = create_component("#qunit-fixture", "temp");
 
     var nodes = ["1", "2", "3"];
-    var myvis = vis("#temp");
+    var myvis = vis(root);
     nodes.forEach(function(d) {
          myvis.add_node(d);
      });
@@ -136,3 +150,4 @@ QUnit.test("Data-binding", function(assert) {
 
     assert.deepEqual(names_in_svg, nodes);
 });
+

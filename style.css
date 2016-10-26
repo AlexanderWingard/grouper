@@ -3,7 +3,7 @@ svg {
     height: 100%;
 }
 
-#name_input {
+.name_input {
     position: absolute;
     top: calc(50% - 25px);
     left: calc(50% - 200px);
