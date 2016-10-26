@@ -10,3 +10,9 @@ svg {
     width: 400px;
     height: 50px;
 }
+text {
+    font: 18px 'Open Sans', sans-serif;
+    text-anchor: middle;
+    pointer-events: none;
+    fill: white;
+}

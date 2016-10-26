@@ -52,15 +52,23 @@ var vis = function(id) {
                 .enter()
                 .append("g")
                 .attr("class", "node");
-
+        var radius = 20;
         var circles_enter = nodes_enter
                 .append("circle")
-                .attr("r", 20)
+                .attr("r", radius)
                 .style("fill", function(d, i) { return color(i); })
                 .call(d3.drag()
                       .on("start", dragstarted)
                       .on("drag", dragged)
                       .on("end", dragended));
+
+        var label_enter = nodes_enter
+                .append("text")
+                .text(function(d) { return d["name"]; })
+                .style("font-size", function(d) {
+                    return Math.min(2 * radius, (2 * radius - 8) / this.getComputedTextLength() * 16) + "px";
+                })
+                .attr("dy", ".35em");
 
         tick();
         sim.alphaTarget(alpha_target).restart();
