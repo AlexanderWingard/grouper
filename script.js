@@ -51,17 +51,17 @@ var vis = function(id) {
         var nodes_enter = nodes_select
                 .enter()
                 .append("g")
-                .attr("class", "node");
-        var radius = 20;
-        var circles_enter = nodes_enter
-                .append("circle")
-                .attr("r", radius)
-                .style("fill", function(d, i) { return color(i); })
+                .attr("class", "node")
                 .call(d3.drag()
                       .on("start", dragstarted)
                       .on("drag", dragged)
                       .on("end", dragended));
 
+        var radius = 20;
+        var circles_enter = nodes_enter
+                .append("circle")
+                .attr("r", radius)
+                .style("fill", function(d, i) { return color(i); });
         var label_enter = nodes_enter
                 .append("text")
                 .text(function(d) { return d["name"]; })
