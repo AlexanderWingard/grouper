@@ -1,4 +1,4 @@
-var vis = function() {
+var vis = function(id) {
     d3.select("#name_input")
         .on("keypress", function(d) {
             if(d3.event.keyCode == 13) {
@@ -10,6 +10,15 @@ var vis = function() {
     var nodes = [];
     var alpha_target = 0.9;
     var color = d3.scaleOrdinal(d3.schemeCategory10);
+
+    var tick = function() {
+        d3.select(id)
+            .selectAll(".dot")
+            .data(nodes)
+            .attr("cx", function(d) { return d["x"]; })
+            .attr("cy", function(d) { return d["y"]; });
+    };
+
     var sim = d3.forceSimulation(nodes)
             .force("charge", d3.forceManyBody().strength(-70))
             .force("x", d3.forceX(function(d) { return d["tx"];}))
@@ -32,17 +41,11 @@ var vis = function() {
             nodes[i]["ty"] = groups[g]["y"];
         }
     }
-    function tick() {
-        d3.selectAll(".dot")
-            .data(nodes)
-            .attr("cx", function(d) { return d["x"]; })
-            .attr("cy", function(d) { return d["y"]; });
-    }
 
     var render = function () {
-        var svg = d3.select("svg");
-        cx = get_svg("width") / 2;
-        cy = get_svg("height") / 2;
+        var svg = d3.select(id);
+        cx = get_svg(id, "width") / 2;
+        cy = get_svg(id, "height") / 2;
         var circles = svg.selectAll(".dot")
                 .data(nodes);
 
@@ -85,18 +88,44 @@ var vis = function() {
     window.addEventListener("load", render);
     return {nodes: nodes,
             add_node: add_node};
-}();
+};
 
-function get_svg(style) {
-    return parseInt(d3.select("svg").style(style));
+function get_svg(id, style) {
+    return parseInt(d3.select(id).style(style));
 }
 
 
 QUnit.test( "hello test", function( assert ) {
-    assert.ok(!isNaN(get_svg("width")));
+    assert.ok(!isNaN(get_svg("#main", "width")));
 });
 
 QUnit.test("Add node", function(assert) {
-    var new_node = vis.add_node("test");
+    var new_node = vis('#main').add_node("test");
     assert.ok(new_node.hasOwnProperty("x"));
+});
+
+QUnit.test("Data-binding", function(assert) {
+    d3.select("#qunit-fixture")
+        .append("svg")
+        .attr("id", "temp")
+        .style("width", "100%")
+        .style("height", "100%");
+
+    var nodes = ["1", "2", "3"];
+    var myvis = vis("#temp");
+    nodes.forEach(function(d) {
+         myvis.add_node(d);
+     });
+
+    var data_in_svg = d3
+        .select("#temp")
+        .selectAll(".dot")
+        .data();
+
+    var names_in_svg = data_in_svg
+        .map(function(d) {
+            return d.name;
+        });
+
+    assert.deepEqual(names_in_svg, nodes);
 });
