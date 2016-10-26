@@ -13,10 +13,9 @@ var vis = function(id) {
 
     var tick = function() {
         d3.select(id)
-            .selectAll(".dot")
+            .selectAll(".node")
             .data(nodes)
-            .attr("cx", function(d) { return d["x"]; })
-            .attr("cy", function(d) { return d["y"]; });
+            .attr("transform", function(d) { return "translate(" + d["x"] + "," + d["y"] + ")"; });
     };
 
     var sim = d3.forceSimulation(nodes)
@@ -46,22 +45,22 @@ var vis = function(id) {
         var svg = d3.select(id);
         cx = get_svg(id, "width") / 2;
         cy = get_svg(id, "height") / 2;
-        var circles = svg.selectAll(".dot")
+        var nodes_select = svg.selectAll(".node")
                 .data(nodes);
 
-        var circles_enter = circles
+        var nodes_enter = nodes_select
                 .enter()
+                .append("g")
+                .attr("class", "node");
+
+        var circles_enter = nodes_enter
                 .append("circle")
-                .attr("class", "dot")
                 .attr("r", 20)
                 .style("fill", function(d, i) { return color(i); })
                 .call(d3.drag()
                       .on("start", dragstarted)
                       .on("drag", dragged)
                       .on("end", dragended));
-
-        var circles_update = circles
-                .merge(circles_enter);
 
         tick();
         sim.alphaTarget(alpha_target).restart();
@@ -119,7 +118,7 @@ QUnit.test("Data-binding", function(assert) {
 
     var data_in_svg = d3
         .select("#temp")
-        .selectAll(".dot")
+        .selectAll(".node")
         .data();
 
     var names_in_svg = data_in_svg
