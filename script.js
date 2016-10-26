@@ -11,7 +11,7 @@ var vis = function(root) {
     root.select(".name_input")
         .on("keypress", function(d) {
             if(d3.event.keyCode == 13) {
-                add_node("dummy");
+                add_node(this.value);
             }
         });
     var cx = 0;
