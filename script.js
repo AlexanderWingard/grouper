@@ -1,3 +1,12 @@
+var grouper = function() {
+    var nodes = [];
+    var add_node = function(name) {
+        var new_node = {name: name};
+        nodes.push(new_node);
+    };
+    return {nodes: nodes,
+            add_node: add_node};
+}
 var vis = function(root) {
     root.select(".name_input")
         .on("keypress", function(d) {
@@ -151,3 +160,9 @@ QUnit.test("Data-binding", function(assert) {
     assert.deepEqual(names_in_svg, nodes);
 });
 
+QUnit.test("Grouper exists", function(assert) {
+    var g = grouper(); 
+    assert.ok(g != undefined, "Grouper does exist");
+    g.add_node("test");
+    assert.ok(g.nodes.length > 0, "Add node works");
+});
