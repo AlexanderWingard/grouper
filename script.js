@@ -1,10 +1,29 @@
 var grouper = function() {
     var nodes = [];
+    var _groups = [];
     var add_node = function(name) {
         var new_node = {name: name};
         nodes.push(new_node);
+        var number_of_groups = Math.floor(nodes.length / 6 + 1);
+        create_groups(number_of_groups);
+        assign_groups();
     };
+    function groups() {
+        return _groups;
+    }
+    function create_groups(num) {
+        _groups.length = 0;
+        for(var i = 0; i < num; i++) {
+            _groups.push({x: 0, y: 0});
+        }
+    }
+    function assign_groups() {
+        for(var i = 0; i < nodes.length; i++) {
+            nodes[i]["group"] = _groups[i % _groups.length];
+        }
+    }
     return {nodes: nodes,
+            groups: groups,
             add_node: add_node};
 }
 var vis = function(root) {
@@ -164,8 +183,16 @@ QUnit.test("Data-binding", function(assert) {
 });
 
 QUnit.test("Grouper exists", function(assert) {
-    var g = grouper(); 
+    var g = grouper();
     assert.ok(g != undefined, "Grouper does exist");
     g.add_node("test");
     assert.ok(g.nodes.length > 0, "Add node works");
+    assert.equal(g.groups().length, 1, "There is one group");
+    assert.ok(g.groups()[0].hasOwnProperty("x") && g.groups()[0].hasOwnProperty("x"), "Groups have x and y");
+    assert.equal(g.groups()[0], g.nodes[0]["group"], "A group is assigned");
+    for(var i = 0; i < 5; i++) {
+        g.add_node("test");
+    }
+    assert.notEqual(g.nodes[0]["group"],g.nodes[1]["group"], "Groups are not the same");
+    assert.equal(g.groups().length, 2, "There is two groups");
 });
