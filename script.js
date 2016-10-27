@@ -9,9 +9,9 @@ var grouper = function() {
 }
 var vis = function(root) {
     root.select(".name_input")
-        .on("keypress", function(d) {
-            if(d3.event.keyCode == 13) {
-                add_node(this.value);
+        .on("keypress", function(code, text) {
+            if(code == 13 || d3.event.keyCode == 13) {
+                add_node(text || this.value);
             }
         });
     var cx = 0;
@@ -117,6 +117,7 @@ function create_component(parent, id) {
         .append('div');
     root
         .append("input")
+        .attr('class', 'name_input')
         .attr("type", "text");
     root
         .append("svg")
@@ -144,7 +145,9 @@ QUnit.test("Data-binding", function(assert) {
     var nodes = ["1", "2", "3"];
     var myvis = vis(root);
     nodes.forEach(function(d) {
-         myvis.add_node(d);
+        root
+            .select('.name_input')
+            .on('keypress')(13, d);
      });
 
     var data_in_svg = d3
