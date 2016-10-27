@@ -1,10 +1,13 @@
 var grouper = function() {
     var nodes = [];
     var _groups = [];
+    var width = 0;
+    var height = 0;
+    dimensions();
     var add_node = function(name) {
-        var new_node = {name: name};
+        var new_node = {name: name, x : width / 2, y: height / 2};
         nodes.push(new_node);
-        var number_of_groups = Math.floor(nodes.length / 6 + 1);
+        var number_of_groups = Math.floor(nodes.length / 5 + 1);
         create_groups(number_of_groups);
         assign_groups();
     };
@@ -12,9 +15,8 @@ var grouper = function() {
         return _groups;
     }
     function create_groups(num) {
-        _groups.length = 0;
-        for(var i = 0; i < num; i++) {
-            _groups.push({x: 0, y: 0});
+        for(var i = _groups.length; i < num; i++) {
+            _groups.push({x: Math.random() * width, y: Math.random() * height});
         }
     }
     function assign_groups() {
@@ -22,60 +24,37 @@ var grouper = function() {
             nodes[i]["group"] = _groups[i % _groups.length];
         }
     }
+    function dimensions(w, h) {
+        width = w;
+        height = h;
+    }
     return {nodes: nodes,
             groups: groups,
-            add_node: add_node};
+            add_node: add_node,
+            dimensions: dimensions};
 }
 var vis = function(root) {
-    root.select(".name_input")
-        .on("keypress", function(code, text) {
-            if(code == 13 || d3.event.keyCode == 13) {
-                add_node(text || this.value);
-            }
-        });
-    var cx = 0;
-    var cy = 0;
-    var nodes = [];
+    var g = grouper();
     var alpha_target = 0.9;
     var color = d3.scaleOrdinal(d3.schemeCategory10);
 
     var tick = function() {
         root
             .selectAll(".node")
-            .data(nodes)
             .attr("transform", function(d) { return "translate(" + d["x"] + "," + d["y"] + ")"; });
     };
 
-    var sim = d3.forceSimulation(nodes)
+    var sim = d3.forceSimulation(g.nodes)
             .force("charge", d3.forceManyBody().strength(-70))
-            .force("x", d3.forceX(function(d) { return d["tx"];}))
-            .force("y", d3.forceY(function(d) { return d["ty"];}))
+            .force("x", d3.forceX(function(d) { return d["group"]["x"];}))
+            .force("y", d3.forceY(function(d) { return d["group"]["y"];}))
             .on("tick", tick);
-
-    var add_node = function(name) {
-        var new_node = {name: name, x: cx, y:cy, tx: 500, ty: 500};
-        nodes.push(new_node);
-        assign_groups();
-        sim.nodes(nodes);
-        render();
-        return new_node;
-    };
-
-    function assign_groups() {
-        var groups = [{x: 500, y: 500}, {x: 100, y:100}];
-        for(var i = 0; i < nodes.length; i++) {
-            var g = Math.floor(Math.random() *  groups.length);
-            nodes[i]["tx"] = groups[g]["x"];
-            nodes[i]["ty"] = groups[g]["y"];
-        }
-    }
 
     var render = function () {
         var svg = root.select('svg');
-        cx = get_svg(root, "width") / 2;
-        cy = get_svg(root, "height") / 2;
+        g.dimensions(get_svg(root, "width"), get_svg(root, "height"));
         var nodes_select = svg.selectAll(".node")
-                .data(nodes);
+                .data(g.nodes);
 
         var nodes_enter = nodes_select
                 .enter()
@@ -99,9 +78,11 @@ var vis = function(root) {
                 })
                 .attr("dy", ".35em");
 
-        tick();
-        sim.alphaTarget(alpha_target).restart();
-   };
+        sim
+            .nodes(g.nodes)
+            .alphaTarget(alpha_target)
+            .restart();
+    };
 
     function dragstarted(d) {
         if (!d3.event.active) sim.alphaTarget(alpha_target).restart();
@@ -120,10 +101,17 @@ var vis = function(root) {
         d.fy = null;
     }
 
+    root.select(".name_input")
+        .on("keypress", function(code, text) {
+            if(code == 13 || d3.event.keyCode == 13) {
+                g.add_node(text || this.value);
+                render();
+            }
+        });
+
     window.addEventListener("resize", render);
     window.addEventListener("load", render);
-    return {nodes: nodes,
-            add_node: add_node};
+    return {};
 };
 
 function get_svg(root, style) {
@@ -147,15 +135,12 @@ function create_component(parent, id) {
     return root;
 };
 
+var root = create_component("#main");
+vis(root);
+
 QUnit.test( "hello test", function( assert ) {
     var root = d3.select('#main');
     assert.ok(!isNaN(get_svg(root, "width")));
-});
-
-QUnit.test("Add node", function(assert) {
-    var root = d3.select("#main");
-    var new_node = vis(root).add_node("test");
-    assert.ok(new_node.hasOwnProperty("x"));
 });
 
 QUnit.test("Data-binding", function(assert) {
@@ -182,7 +167,7 @@ QUnit.test("Data-binding", function(assert) {
     assert.deepEqual(names_in_svg, nodes);
 });
 
-QUnit.test("Grouper exists", function(assert) {
+QUnit.test("Grouper", function(assert) {
     var g = grouper();
     assert.ok(g != undefined, "Grouper does exist");
     g.add_node("test");
