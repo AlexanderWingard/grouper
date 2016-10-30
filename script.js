@@ -3,7 +3,6 @@ var grouper = function() {
     var _groups = [];
     var width = 0;
     var height = 0;
-    dimensions();
     var add_node = function(name) {
         var new_node = {name: name, x : width / 2, y: height / 2};
         nodes.push(new_node);
@@ -32,6 +31,31 @@ var grouper = function() {
             groups: groups,
             add_node: add_node,
             dimensions: dimensions};
+}
+
+function circler() {
+    var g;
+    var width;
+    var height;
+    var dimensions = function(x, y) {
+        width = x;
+        height = y;
+        return this;
+    };
+    var groups = function(num) {
+        if(arguments.length == 0) {
+            return g;
+        }
+        g = [];
+        var angle_part = 2 * Math.PI / num;
+        for(var i = 0; i < num; i++) {
+            g.push({x: Math.round(Math.sin(angle_part * i)),
+                    y: Math.round(Math.cos(angle_part * i))});
+        }
+        return this;
+    };
+    return {dimensions: dimensions,
+            groups: groups};
 }
 var vis = function(root) {
     var g = grouper();
@@ -180,4 +204,13 @@ QUnit.test("Grouper", function(assert) {
     }
     assert.notEqual(g.nodes[0]["group"],g.nodes[1]["group"], "Groups are not the same");
     assert.equal(g.groups().length, 2, "There is two groups");
+});
+
+QUnit.test("Circler", function(assert) {
+    var c = circler()
+            .dimensions(1,1)
+            .groups(2);
+    assert.deepEqual(c.groups(), [{x: 0, y: 1},{x: 0, y: -1}]);
+    c.groups(1);
+    assert.equal(c.groups().length, 1, "Groups can shrink");
 });
