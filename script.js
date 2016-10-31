@@ -49,8 +49,8 @@ function circler() {
         g = [];
         var angle_part = 2 * Math.PI / num;
         for(var i = 0; i < num; i++) {
-            g.push({x: Math.round(Math.sin(angle_part * i)),
-                    y: Math.round(Math.cos(angle_part * i))});
+            g.push({x: Math.round(Math.sin(angle_part * i) * width / 2 + width / 2),
+                    y: Math.round(Math.cos(angle_part * i)) * height / 2 + height / 2});
         }
         return this;
     };
@@ -208,9 +208,9 @@ QUnit.test("Grouper", function(assert) {
 
 QUnit.test("Circler", function(assert) {
     var c = circler()
-            .dimensions(1,1)
+            .dimensions(10,10)
             .groups(2);
-    assert.deepEqual(c.groups(), [{x: 0, y: 1},{x: 0, y: -1}]);
+    assert.deepEqual(c.groups(), [{x: 5, y: 10},{x: 5, y: 0}], "Two groups work OK");
     c.groups(1);
     assert.equal(c.groups().length, 1, "Groups can shrink");
 });
