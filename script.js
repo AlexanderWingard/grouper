@@ -25,34 +25,42 @@ var grouper = function() {
     }
     return {nodes: nodes,
             add_node: add_node,
-            dimensions: dimensions};
+            dimensions: dimensions,
+            shrink: c.shrink};
 }
 
 function circler() {
-    var g;
+    var num = 0;
     var width;
     var height;
-    var radius = 1;
+    var shrink_factor = 1;
     var dimensions = function(w, h) {
         width = w;
         height = h;
-        radius = Math.min(w, h);
         return this;
     };
-    var groups = function(num) {
-        if(arguments.length == 0) {
-            return g;
+    var shrink = function(factor) {
+        shrink_factor = factor;
+        return this;
+    };
+    var groups = function(n) {
+        if(n != undefined) {
+            num = n;
+            return this;
         }
+        var radius = Math.min(width, height) * shrink_factor;
+        console.log(radius);
         g = [];
         var angle_part = 2 * Math.PI / num;
         for(var i = 0; i < num; i++) {
             g.push({x: Math.round(Math.sin(angle_part * i) * radius / 2 + width / 2),
                     y: Math.round(Math.cos(angle_part * i) * radius / 2 + height / 2)});
         }
-        return this;
+        return g;
     };
     return {dimensions: dimensions,
-            groups: groups};
+            groups: groups,
+            shrink: shrink};
 }
 var vis = function(root) {
     var svg = root.select('svg');
@@ -133,7 +141,7 @@ var vis = function(root) {
 
     window.addEventListener("resize", render);
     window.addEventListener("load", render);
-    return {};
+    return {shrink: g.shrink};
 };
 
 function get_svg(root, style) {
@@ -158,7 +166,7 @@ function create_component(parent, id) {
 };
 
 var root = create_component("#main");
-vis(root);
+vis(root).shrink(0.7);
 
 QUnit.test( "hello test", function( assert ) {
     var root = d3.select('#main');
@@ -193,7 +201,6 @@ QUnit.test("Grouper", function(assert) {
     var g = grouper().dimensions(10,10);
     g.add_node("test");
     assert.ok(g.nodes.length > 0, "Add node works");
-    assert.deepEqual(g.nodes[0]["group"], {x: 5, y: 10}, "A group is assigned");
 });
 
 QUnit.test("Nodes are grouped", function(assert) {
@@ -224,5 +231,6 @@ QUnit.test("Circler", function(assert) {
             .groups(3);
     assert.deepEqual(c.groups(), [{x: 5 ,y: 10},{x: 9, y: 3}, {x: 1, y: 2}], "Two groups work OK");
     c.groups(1);
-    assert.equal(c.groups().length, 1, "Groups can shrink");
+    assert.deepEqual(c.groups(), [{x: 5, y: 10}], "Groups can shrink");
+    assert.deepEqual(c.shrink(0.5).groups(), [{x: 5, y: 8}], "Radius can shrink");
 });
