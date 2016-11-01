@@ -32,9 +32,11 @@ function circler() {
     var g;
     var width;
     var height;
+    var radius;
     var dimensions = function(w, h) {
         width = w;
         height = h;
+        radius = Math.min(w, h) * 0.5;
         return this;
     };
     var groups = function(num) {
@@ -44,8 +46,8 @@ function circler() {
         g = [];
         var angle_part = 2 * Math.PI / num;
         for(var i = 0; i < num; i++) {
-            g.push({x: Math.round(Math.sin(angle_part * i) * width / 2 + width / 2),
-                    y: Math.round(Math.cos(angle_part * i)) * height / 2 + height / 2});
+            g.push({x: Math.round(Math.sin(angle_part * i) * radius / 2 + width / 2),
+                    y: Math.round(Math.cos(angle_part * i)) * radius / 2 + height / 2});
         }
         return this;
     };
@@ -191,7 +193,7 @@ QUnit.test("Grouper", function(assert) {
     var g = grouper().dimensions(10,10);
     g.add_node("test");
     assert.ok(g.nodes.length > 0, "Add node works");
-    assert.deepEqual(g.nodes[0]["group"], {x: 5, y: 10}, "A group is assigned");
+    assert.deepEqual(g.nodes[0]["group"], {x: 5, y: 7.5}, "A group is assigned");
     for(var i = 0; i < 5; i++) {
         g.add_node("test");
     }
@@ -201,7 +203,7 @@ QUnit.test("Circler", function(assert) {
     var c = circler()
             .dimensions(10,10)
             .groups(2);
-    assert.deepEqual(c.groups(), [{x: 5, y: 10},{x: 5, y: 0}], "Two groups work OK");
+    assert.deepEqual(c.groups(), [{x: 5, y: 7.5},{x: 5, y: 2.5}], "Two groups work OK");
     c.groups(1);
     assert.equal(c.groups().length, 1, "Groups can shrink");
 });
