@@ -210,18 +210,15 @@ QUnit.test("Nodes are grouped", function(assert) {
         g.add_node("test");
     }
 
-    // get theirs y
-    var ys = g.nodes.map(function(d) {
-        return d['group'].y;
-    });
+    // get list of groups
+    var groups = g.nodes.reduce(function(acc, d) {
+        var xy = d["group"];
+        var key = xy.x + ',' + xy.y;
+        acc[key] = undefined;
+        return acc;
+    }, {});
 
-    assert.equal(g.nodes.length, 5);
-
-    var bottom_group = ys.filter(function(d) { return d == 10; });
-    var top_group = ys.filter(function(d) { return d == 0; });
-
-    assert.equal(bottom_group.length, 3);
-    assert.equal(top_group.length, 2);
+    assert.equal(Object.keys(groups).length, 2);
 
 });
 
