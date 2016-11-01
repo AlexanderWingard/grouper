@@ -194,9 +194,28 @@ QUnit.test("Grouper", function(assert) {
     g.add_node("test");
     assert.ok(g.nodes.length > 0, "Add node works");
     assert.deepEqual(g.nodes[0]["group"], {x: 5, y: 10}, "A group is assigned");
+});
+
+QUnit.test("Nodes are grouped", function(assert) {
+    // add 5 nodes
+    var g = grouper().dimensions(10,10);
     for(var i = 0; i < 5; i++) {
         g.add_node("test");
     }
+
+    // get theirs y
+    var ys = g.nodes.map(function(d) {
+        return d['group'].y;
+    });
+
+    assert.equal(g.nodes.length, 5);
+
+    var bottom_group = ys.filter(function(d) { return d == 10; });
+    var top_group = ys.filter(function(d) { return d == 0; });
+
+    assert.equal(bottom_group.length, 3);
+    assert.equal(top_group.length, 2);
+
 });
 
 QUnit.test("Circler", function(assert) {
