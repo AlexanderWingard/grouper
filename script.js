@@ -1,34 +1,29 @@
 var grouper = function() {
     var nodes = [];
-    var _groups = [];
-    var width = 0;
-    var height = 0;
+    var width;
+    var height;
+    var c = circler();
     var add_node = function(name) {
         var new_node = {name: name, x : width / 2, y: height / 2};
         nodes.push(new_node);
         var number_of_groups = Math.floor(nodes.length / 5 + 1);
-        create_groups(number_of_groups);
-        assign_groups();
+        var g = c.groups(number_of_groups).groups();
+        assign_groups(g);
     };
-    function groups() {
-        return _groups;
-    }
-    function create_groups(num) {
-        for(var i = _groups.length; i < num; i++) {
-            _groups.push({x: Math.random() * width, y: Math.random() * height});
-        }
-    }
-    function assign_groups() {
+
+   function assign_groups(groups) {
         for(var i = 0; i < nodes.length; i++) {
-            nodes[i]["group"] = _groups[i % _groups.length];
+            nodes[i]["group"] = groups[i % groups.length];
         }
     }
+
     function dimensions(w, h) {
         width = w;
         height = h;
+        c.dimensions(w, h);
+        return this;
     }
     return {nodes: nodes,
-            groups: groups,
             add_node: add_node,
             dimensions: dimensions};
 }
@@ -37,9 +32,9 @@ function circler() {
     var g;
     var width;
     var height;
-    var dimensions = function(x, y) {
-        width = x;
-        height = y;
+    var dimensions = function(w, h) {
+        width = w;
+        height = h;
         return this;
     };
     var groups = function(num) {
@@ -58,6 +53,7 @@ function circler() {
             groups: groups};
 }
 var vis = function(root) {
+    var svg = root.select('svg');
     var g = grouper();
     var alpha_target = 0.9;
     var color = d3.scaleOrdinal(d3.schemeCategory10);
@@ -75,7 +71,6 @@ var vis = function(root) {
             .on("tick", tick);
 
     var render = function () {
-        var svg = root.select('svg');
         g.dimensions(get_svg(root, "width"), get_svg(root, "height"));
         var nodes_select = svg.selectAll(".node")
                 .data(g.nodes);
@@ -84,6 +79,7 @@ var vis = function(root) {
                 .enter()
                 .append("g")
                 .attr("class", "node")
+                .attr("transform", function(d) { return "translate(" + d["x"] + "," + d["y"] + ")"; })
                 .call(d3.drag()
                       .on("start", dragstarted)
                       .on("drag", dragged)
@@ -192,18 +188,13 @@ QUnit.test("Data-binding", function(assert) {
 });
 
 QUnit.test("Grouper", function(assert) {
-    var g = grouper();
-    assert.ok(g != undefined, "Grouper does exist");
+    var g = grouper().dimensions(10,10);
     g.add_node("test");
     assert.ok(g.nodes.length > 0, "Add node works");
-    assert.equal(g.groups().length, 1, "There is one group");
-    assert.ok(g.groups()[0].hasOwnProperty("x") && g.groups()[0].hasOwnProperty("x"), "Groups have x and y");
-    assert.equal(g.groups()[0], g.nodes[0]["group"], "A group is assigned");
+    assert.deepEqual(g.nodes[0]["group"], {x: 5, y: 10}, "A group is assigned");
     for(var i = 0; i < 5; i++) {
         g.add_node("test");
     }
-    assert.notEqual(g.nodes[0]["group"],g.nodes[1]["group"], "Groups are not the same");
-    assert.equal(g.groups().length, 2, "There is two groups");
 });
 
 QUnit.test("Circler", function(assert) {
