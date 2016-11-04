@@ -65,9 +65,19 @@ function circler() {
             groups: groups,
             shrink: shrink};
 }
+var lister = function() {
+    var list = function(nodes) {
+        var nested = d3.nest()
+            .key(function(d) { return d["group"]; })
+            .entries(nodes);
+        return nested;
+    };
+    return {list: list};
+};
 var vis = function(root) {
     var svg = root.select('svg');
     var g = grouper();
+    var l = lister();
     var alpha_target = 0.9;
     var color = d3.scaleOrdinal(d3.schemeCategory10);
 
@@ -146,6 +156,7 @@ var vis = function(root) {
         .on("click", function() {
             var modal = d3.select(".modal");
             if(modal.style("display") == "none") {
+                modal.text(JSON.stringify(l.list(g.nodes)));
                 modal.style("display", "block");
             } else {
                 modal.style("display", "none");
@@ -237,7 +248,6 @@ QUnit.test("Nodes are grouped", function(assert) {
     }, {});
 
     assert.equal(Object.keys(groups).length, 2);
-
 });
 
 QUnit.test("Circler", function(assert) {
@@ -248,4 +258,10 @@ QUnit.test("Circler", function(assert) {
     c.groups(1);
     assert.deepEqual(c.groups(), [{x: 5, y: 10}], "Groups can shrink");
     assert.deepEqual(c.shrink(0.5).groups(), [{x: 5, y: 8}], "Radius can shrink");
+});
+
+QUnit.test("Lister", function(assert) {
+    var l = lister();
+    var test_nodes = [{name: "a", group: "a"}, {name: "a", group: "a"}, {name: "b", group: "b"}];
+    assert.equal(l.list(test_nodes).length, 2);
 });
