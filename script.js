@@ -6,11 +6,14 @@ var grouper = function() {
     var add_node = function(name) {
         var new_node = {name: name, x : width / 2, y: height / 2};
         nodes.push(new_node);
+        render();
+   };
+
+    var render = function() {
         var number_of_groups = Math.floor(nodes.length / 5 + 1);
         var g = c.groups(number_of_groups).groups();
         assign_groups(g);
-    };
-
+    }
    function assign_groups(groups) {
         for(var i = 0; i < nodes.length; i++) {
             nodes[i]["group"] = groups[i % groups.length];
@@ -21,6 +24,7 @@ var grouper = function() {
         width = w;
         height = h;
         c.dimensions(w, h);
+        render();
         return this;
     }
     return {nodes: nodes,
@@ -49,7 +53,6 @@ function circler() {
             return this;
         }
         var radius = Math.min(width, height) * shrink_factor;
-        console.log(radius);
         g = [];
         var angle_part = 2 * Math.PI / num;
         for(var i = 0; i < num; i++) {
