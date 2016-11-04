@@ -142,6 +142,16 @@ var vis = function(root) {
             }
         });
 
+    root.select(".footer")
+        .on("click", function() {
+            var modal = d3.select(".modal");
+            if(modal.style("display") == "none") {
+                modal.style("display", "block");
+            } else {
+                modal.style("display", "none");
+            }
+        });
+
     window.addEventListener("resize", render);
     window.addEventListener("load", render);
     return {shrink: g.shrink};
@@ -159,7 +169,12 @@ function create_component(parent, id) {
         .append("input")
         .attr('class', 'name_input')
         .attr("type", "text");
-    root
+    root.append("div")
+        .attr("class", "modal");
+     root.append("a")
+        .attr("class", "footer")
+        .text("list");
+   root
         .append("svg")
         .attr("id", id)
         .style("width", "100%")

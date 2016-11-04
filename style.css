@@ -16,3 +16,20 @@ text {
     pointer-events: none;
     fill: white;
 }
+.footer {
+    width: 100%;
+    text-align: center;
+    position: absolute;
+    bottom: 15px;
+    left: 0px;
+}
+.modal {
+    width: 75%;
+    left: 0px;
+    right: 0px;
+    margin-left: auto;
+    margin-right: auto;
+    height: 100%;
+    position: absolute;
+    display: none;
+}
