@@ -284,7 +284,7 @@ QUnit.test("Circler", function(assert) {
     var c = circler()
             .dimensions(10,10)
             .groups(3);
-    assert.deepEqual(c.groups(), [{n: 0, x: 5 ,y: 10},{n: 1, x: 9, y: 3}, {n: 2, x: 1, y: 2}], "Two groups work OK");
+    assert.deepEqual(c.groups(), [{n: 0, x: 5 ,y: 10},{n: 1, x: 9, y: 3}, {n: 2, x: 1, y: 2}], "Three groups work OK");
     c.groups(1);
     assert.deepEqual(c.groups(), [{n: 0, x: 5, y: 10}], "Groups can shrink");
     assert.deepEqual(c.shrink(0.5).groups(), [{n: 0, x: 5, y: 8}], "Radius can shrink");
