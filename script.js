@@ -14,11 +14,20 @@ var grouper = function() {
         var g = c.groups(number_of_groups).groups();
         assign_groups(g);
     };
-   function assign_groups(groups) {
+
+   var assign_groups = function(groups) {
         for(var i = 0; i < nodes.length; i++) {
-            nodes[i]["group"] = groups[i % groups.length];
+            nodes[i]["group"] = groups[Math.trunc(d3.randomUniform(groups.length)())];
         }
-    }
+   };
+
+    var assigner = function(fun) {
+        if(fun == undefined) {
+            return assign_groups;
+        }
+        assign_groups = fun;
+        return this;
+    };
 
     function dimensions(w, h) {
         width = w;
@@ -30,8 +39,10 @@ var grouper = function() {
     return {nodes: nodes,
             add_node: add_node,
             dimensions: dimensions,
-            shrink: c.shrink};
-}
+            shrink: c.shrink,
+            groups: c.groups,
+            assigner: assigner};
+};
 
 function circler() {
     var num = 0;
@@ -256,28 +267,24 @@ QUnit.test("Data-binding", function(assert) {
     assert.deepEqual(names_in_svg, nodes);
 });
 
-QUnit.test("Grouper", function(assert) {
-    var g = grouper().dimensions(10,10);
-    g.add_node("test");
-    assert.ok(g.nodes.length > 0, "Add node works");
-});
 
 QUnit.test("Nodes are grouped", function(assert) {
     // add 5 nodes
     var g = grouper().dimensions(10,10);
+    g.assigner(function() { return "dummy";});
     for(var i = 0; i < 5; i++) {
         g.add_node("test");
     }
 
     // get list of groups
     var groups = g.nodes.reduce(function(acc, d) {
-        var xy = d["group"];
-        var key = xy.x + ',' + xy.y;
-        acc[key] = undefined;
+        var group = JSON.stringify(d["group"]);
+        acc[group] = undefined;
         return acc;
     }, {});
 
-    assert.equal(Object.keys(groups).length, 2);
+    assert.equal(Object.keys(groups).length, 1, "All nodes assigned to dummy group");
+    assert.equal(g.groups().length, 2, "There are two groups");
 });
 
 QUnit.test("Circler", function(assert) {
