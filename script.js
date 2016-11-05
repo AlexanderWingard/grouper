@@ -135,7 +135,9 @@ var vis = function(root) {
             .on("tick", tick);
 
     var render = function () {
-        g.dimensions(get_svg(root, "width"), get_svg(root, "height"));
+        var width = get_svg(root, "width");
+        var height = get_svg(root, "height");
+        g.dimensions(width, height);
         var nodes_select = svg.selectAll(".node")
                 .data(g.nodes);
 
@@ -143,7 +145,9 @@ var vis = function(root) {
                 .enter()
                 .append("g")
                 .attr("class", "node")
-                .attr("transform", function(d) { return "translate(" + d["x"] + "," + d["y"] + ")"; })
+                .attr("transform", function(d) {
+                    return "translate(" + (width / 2) + "," + (height / 2) + ")";
+                })
                 .call(d3.drag()
                       .on("start", dragstarted)
                       .on("drag", dragged)
