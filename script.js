@@ -1,8 +1,15 @@
+var default_assigner = function(nodes, groups) {
+    for(var i = 0; i < nodes.length; i++) {
+        nodes[i]["group"] = groups[Math.trunc(d3.randomUniform(groups.length)())];
+    }
+};
+
 var grouper = function() {
     var nodes = [];
     var width;
     var height;
     var c = circler();
+    var a = default_assigner;
     var add_node = function(name) {
         var new_node = {name: name, x : width / 2, y: height / 2};
         nodes.push(new_node);
@@ -12,20 +19,14 @@ var grouper = function() {
     var render = function() {
         var number_of_groups = Math.floor(nodes.length / 5 + 1);
         var g = c.groups(number_of_groups).groups();
-        assign_groups(g);
+        a(nodes, g);
     };
-
-   var assign_groups = function(groups) {
-        for(var i = 0; i < nodes.length; i++) {
-            nodes[i]["group"] = groups[Math.trunc(d3.randomUniform(groups.length)())];
-        }
-   };
 
     var assigner = function(fun) {
         if(fun == undefined) {
-            return assign_groups;
+            return a;
         }
-        assign_groups = fun;
+        a = fun;
         return this;
     };
 
