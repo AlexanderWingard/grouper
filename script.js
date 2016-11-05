@@ -13,7 +13,7 @@ var grouper = function() {
         var number_of_groups = Math.floor(nodes.length / 5 + 1);
         var g = c.groups(number_of_groups).groups();
         assign_groups(g);
-    }
+    };
    function assign_groups(groups) {
         for(var i = 0; i < nodes.length; i++) {
             nodes[i]["group"] = groups[i % groups.length];
@@ -56,7 +56,8 @@ function circler() {
         g = [];
         var angle_part = 2 * Math.PI / num;
         for(var i = 0; i < num; i++) {
-            g.push({x: Math.round(Math.sin(angle_part * i) * radius / 2 + width / 2),
+            g.push({n: i,
+                    x: Math.round(Math.sin(angle_part * i) * radius / 2 + width / 2),
                     y: Math.round(Math.cos(angle_part * i) * radius / 2 + height / 2)});
         }
         return g;
@@ -66,13 +67,42 @@ function circler() {
             shrink: shrink};
 }
 var lister = function() {
+    var render = function(root, nodes) {
+        var data = list(nodes);
+        var list_group = root.selectAll(".list_group")
+                .data(data);
+        var list_group_enter = list_group
+                .enter()
+                .append("div")
+                .attr("class", "list_group");
+        var list_group_exit = list_group
+                .exit()
+                .remove();
+        var list_group_update = list_group
+                .merge(list_group_enter)
+                .text(function(d) { return d["key"]; });
+        var list_item = list_group_update
+                .selectAll(".list_item")
+                .data(function(d) { return d["values"]; });
+        var list_item_enter = list_item
+                .enter()
+                .append("div")
+                .attr("class", "list_item");
+        var list_item_exit = list_item
+                .exit()
+                .remove();
+        var list_item_update = list_item
+                .merge(list_item_enter)
+                .text(function(d) { return d["name"]; });
+    };
     var list = function(nodes) {
         var nested = d3.nest()
-            .key(function(d) { return d["group"]; })
+                .key(function(d) { return d["group"]["n"]; })
             .entries(nodes);
         return nested;
     };
-    return {list: list};
+    return {list: list,
+            render: render};
 };
 var vis = function(root) {
     var svg = root.select('svg');
@@ -156,7 +186,7 @@ var vis = function(root) {
         .on("click", function() {
             var modal = d3.select(".modal");
             if(modal.style("display") == "none") {
-                modal.text(JSON.stringify(l.list(g.nodes)));
+                l.render(modal, g.nodes);
                 modal.style("display", "block");
             } else {
                 modal.style("display", "none");
@@ -254,14 +284,15 @@ QUnit.test("Circler", function(assert) {
     var c = circler()
             .dimensions(10,10)
             .groups(3);
-    assert.deepEqual(c.groups(), [{x: 5 ,y: 10},{x: 9, y: 3}, {x: 1, y: 2}], "Two groups work OK");
+    assert.deepEqual(c.groups(), [{n: 0, x: 5 ,y: 10},{n: 1, x: 9, y: 3}, {n: 2, x: 1, y: 2}], "Two groups work OK");
     c.groups(1);
-    assert.deepEqual(c.groups(), [{x: 5, y: 10}], "Groups can shrink");
-    assert.deepEqual(c.shrink(0.5).groups(), [{x: 5, y: 8}], "Radius can shrink");
+    assert.deepEqual(c.groups(), [{n: 0, x: 5, y: 10}], "Groups can shrink");
+    assert.deepEqual(c.shrink(0.5).groups(), [{n: 0, x: 5, y: 8}], "Radius can shrink");
 });
 
 QUnit.test("Lister", function(assert) {
     var l = lister();
-    var test_nodes = [{name: "a", group: "a"}, {name: "a", group: "a"}, {name: "b", group: "b"}];
+    var test_nodes = [{name: "a", group: {n: 1}}, {name: "a", group: {n: 1}}, {name: "b", group: {n: 2}}];
     assert.equal(l.list(test_nodes).length, 2);
+    assert.equal(l.list(test_nodes)[0]["key"], "1");
 });
