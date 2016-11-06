@@ -344,3 +344,11 @@ QUnit.test("Assigner", function(assert) {
     assert.deepEqual(result["to_move"], [nodes[0], nodes[2]]);
     assert.deepEqual(result["destinations"], [[0, groups[1]], [1, groups[0]]]);
 });
+
+QUnit.test("Assigner", function(assert) {
+    var groups = [{n: 1}, {n: 2}];
+    var nodes = [{name: "0", group: {n: 1}}, {name: "1", group: {n: 1}}, {name: "2", group: {n:2}}, {name: "3", group: {n:2}}];
+    var result = default_assigner(nodes, groups);
+    assert.deepEqual(result["to_move"], []);
+    assert.deepEqual(result["destinations"], []);
+});
