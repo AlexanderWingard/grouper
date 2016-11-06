@@ -1,7 +1,37 @@
 var default_assigner = function(nodes, groups) {
+    var nested = d3.nest()
+            .key(function(d) {
+                if("group" in d) {
+                    return d["group"]["n"];
+                }
+                return "undefined";
+            })
+            .rollup(function(d) { return d.length;})
+            .map(nodes);
+    var new_groups = [];
+    for(var i = 0; i < groups.length; i++) {
+        if(!nested.has(groups[i]["n"])) {
+            new_groups.push(groups[i]["n"]);
+            nested.set(groups[i]["n"], 0);
+        }
+    }
+    var min_size = Math.trunc(nodes.length / groups.length);
+    var max_diff = nodes.length % groups.length;
+    var to_move = [];
+    var destinations = [];
+    nested.each(function(v, k, m) {
+        if(groups.some(function(d) { return d["n"] == k; }) && v < (min_size + max_diff)) {
+            destinations.push([v, groups.find(function(d) { return d["n"] == k; })]);
+        }
+    });
+    destinations.sort();
     for(var i = 0; i < nodes.length; i++) {
+        if(!("group" in nodes[i]) || !groups.some(function(d) { return d["n"] == nodes[i]["group"]["n"]; }) || nested.get(nodes[i]["group"]["n"]) > (min_size + max_diff)) {
+            to_move.push(nodes[i]);
+        }
         nodes[i]["group"] = groups[Math.trunc(d3.randomUniform(groups.length)())];
     }
+    return {to_move : to_move, destinations: destinations};
 };
 
 var grouper = function() {
@@ -307,4 +337,12 @@ QUnit.test("Lister", function(assert) {
     var test_nodes = [{name: "a", group: {n: 1}}, {name: "a", group: {n: 1}}, {name: "b", group: {n: 2}}];
     assert.equal(l.list(test_nodes).length, 2);
     assert.equal(l.list(test_nodes)[0]["key"], "1");
+});
+
+QUnit.test("Assigner", function(assert) {
+    var groups = [{n: 1}, {n: 3}];
+    var nodes = [{name: "0"}, {name: "1", group: {n:1}}, {name: "1", group: {n:2}}];
+    var result = default_assigner(nodes, groups);
+    assert.deepEqual(result["to_move"], [nodes[0], nodes[2]]);
+    assert.deepEqual(result["destinations"], [[0, groups[1]], [1, groups[0]]]);
 });
