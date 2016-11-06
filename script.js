@@ -45,7 +45,7 @@ var grouper = function() {
    };
 
     var render = function() {
-        var number_of_groups = Math.floor(nodes.length / 5 + 1);
+        var number_of_groups = Math.ceil(nodes.length / 4);
         var g = c.groups(number_of_groups).groups();
         a(nodes, g);
     };
