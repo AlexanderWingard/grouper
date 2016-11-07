@@ -268,6 +268,7 @@ var vis = function(root) {
         .on("click", function() {
             g.remove_last_node();
             render();
+            l.render(d3.select(".modal"), g.nodes);
         });
     window.addEventListener("resize", render);
     window.addEventListener("load", render);
@@ -288,10 +289,10 @@ function create_component(parent, id) {
         .attr("type", "text");
     root.append("div")
         .attr("class", "modal");
-    root.append("a")
+    root.append("div")
         .attr("class", "footer")
         .text("list");
-    root.append("a")
+    root.append("div")
         .attr("class", "undo")
         .text("undo");
     root
