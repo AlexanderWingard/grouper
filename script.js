@@ -14,10 +14,7 @@ var default_assigner = function(nodes, groups) {
     }
     var nested = d3.nest()
             .key(function(d) {
-                if("group" in d) {
-                    return d["group"]["n"];
-                }
-                return "undefined";
+                return d["group"]["n"];
             })
             .rollup(function(d) { return d.length;})
             .map(nodes);
