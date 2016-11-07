@@ -160,7 +160,7 @@ var vis = function(root) {
     var g = grouper();
     var l = lister();
     var alpha_target = 0.9;
-    var color = d3.scaleOrdinal(d3.schemeCategory10);
+    var color = d3.scaleOrdinal(["#009999", "#330066", "#808080", "#003333", "#99FFFF"]);
 
     var tick = function() {
         root
