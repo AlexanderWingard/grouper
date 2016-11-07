@@ -126,6 +126,14 @@ function circler() {
             shrink: shrink};
 }
 var lister = function() {
+    var group_name = function(key) {
+        if(key == "0") return "Transportation";
+        if(key == "1") return "IoT";
+        if(key == "2") return "Housing";
+        if(key == "3") return "Education";
+        if(key == "4") return "Migration";
+        return key;
+    };
     var render = function(root, nodes) {
         var data = list(nodes);
         var list_group = root.selectAll(".list_group")
@@ -139,7 +147,7 @@ var lister = function() {
                 .remove();
         var list_group_update = list_group
                 .merge(list_group_enter)
-                .text(function(d) { return d["key"]; });
+                .text(function(d) { return group_name(d["key"]);});
         var list_item = list_group_update
                 .selectAll(".list_item")
                 .data(function(d) { return d["values"]; });
