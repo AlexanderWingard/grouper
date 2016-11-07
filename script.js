@@ -134,6 +134,12 @@ var lister = function() {
         if(key == "4") return "Migration";
         return key;
     };
+    var name = function(n) {
+        if(n == "") {
+            return "_";
+        }
+        return n;
+    };
     var render = function(root, nodes) {
         var data = list(nodes);
         var list_group = root.selectAll(".list_group")
@@ -160,7 +166,7 @@ var lister = function() {
                 .remove();
         var list_item_update = list_item
                 .merge(list_item_enter)
-                .text(function(d) { return d["name"]; });
+                .text(function(d) { return name(d["name"]); });
     };
     var list = function(nodes) {
         var nested = d3.nest()
@@ -250,6 +256,7 @@ var vis = function(root) {
         .on("keypress", function(code, text) {
             if(code == 13 || d3.event.keyCode == 13) {
                 g.add_node(text || this.value);
+                this.value = "";
                 render();
             }
         });
