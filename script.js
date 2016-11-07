@@ -1,4 +1,12 @@
 var default_assigner = function(nodes, groups) {
+    var min_group_size = Math.floor(nodes.length / groups.length);
+    for(var i = 0; i < nodes.length; i++) {
+        if(!("group" in nodes[i])) {
+            nodes[i]["group"] = groups[Math.trunc(d3.randomUniform(groups.length)())];
+        } else {
+            nodes[i]["group"] = groups.find(function(d) { return d["n"] == nodes[i]["group"]["n"]});
+        }
+    }
     var nested = d3.nest()
             .key(function(d) {
                 if("group" in d) {
@@ -13,23 +21,26 @@ var default_assigner = function(nodes, groups) {
             nested.set(groups[i]["n"], 0);
         }
     }
-    var max_group_size = Math.ceil(nodes.length / groups.length);
-    var destinations = [];
+    var too_small = [];
+    var too_large = [];
     nested.each(function(v, k, m) {
-        if(groups.some(function(d) { return d["n"] == k; }) && v < max_group_size) {
-            destinations.push([v, groups.find(function(d) { return d["n"] == k; })]);
+        if(v < min_group_size) {
+            too_small.push(k);
+        } else if (v > (min_group_size + 1)) {
+            too_large.push(k);
         }
     });
-    destinations.sort();
-    var to_move = [];
-    for(var i = 0; i < nodes.length; i++) {
-        var node = nodes[i];
-        if(!("group" in node) || !groups.some(function(d) { return d["n"] == node["group"]["n"]; }) || nested.get(node["group"]["n"]) > max_group_size) {
-            to_move.push(node);
-        }
-        node["group"] = groups[Math.trunc(d3.randomUniform(groups.length)())];
+    if(too_small.length > 0) {
+        var move = nodes[Math.trunc(d3.randomUniform(nodes.length)())];
+        var g = groups.find(function(d) { return d["n"] == too_small[0]; });
+        move["group"] = g;
+        default_assigner(nodes, groups);
+    } else if(too_large.length > 0) {
+        var move = nodes.find(function(d) { return d["group"]["n"] == too_large[0];});
+        var g = groups.filter(function(d) { return d["n"] != too_large[0];});
+        move["group"] = g[Math.trunc(d3.randomUniform(g.length)())];
+        default_assigner(nodes, groups);
     }
-    return {to_move : to_move, destinations: destinations};
 };
 
 var grouper = function() {
@@ -337,18 +348,3 @@ QUnit.test("Lister", function(assert) {
     assert.equal(l.list(test_nodes)[0]["key"], "1");
 });
 
-QUnit.test("Assigner", function(assert) {
-    var groups = [{n: 1}, {n: 3}];
-    var nodes = [{name: "0"}, {name: "1", group: {n:1}}, {name: "1", group: {n:2}}];
-    var result = default_assigner(nodes, groups);
-    assert.deepEqual(result["to_move"], [nodes[0], nodes[2]]);
-    assert.deepEqual(result["destinations"], [[0, groups[1]], [1, groups[0]]]);
-});
-
-QUnit.test("Assigner", function(assert) {
-    var groups = [{n: 1}, {n: 2}];
-    var nodes = [{name: "0", group: {n: 1}}, {name: "1", group: {n: 1}}, {name: "2", group: {n:2}}, {name: "3", group: {n:2}}];
-    var result = default_assigner(nodes, groups);
-    assert.deepEqual(result["to_move"], []);
-    assert.deepEqual(result["destinations"], []);
-});
