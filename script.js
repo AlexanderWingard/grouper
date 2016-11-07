@@ -4,7 +4,12 @@ var default_assigner = function(nodes, groups) {
         if(!("group" in nodes[i])) {
             nodes[i]["group"] = groups[Math.trunc(d3.randomUniform(groups.length)())];
         } else {
-            nodes[i]["group"] = groups.find(function(d) { return d["n"] == nodes[i]["group"]["n"]});
+            var g = groups.find(function(d) { return d["n"] == nodes[i]["group"]["n"];});
+            if(g != undefined) {
+                nodes[i]["group"] = g;
+            } else {
+                nodes[i]["group"] = groups[Math.trunc(d3.randomUniform(groups.length)())];
+            }
         }
     }
     var nested = d3.nest()
@@ -55,6 +60,11 @@ var grouper = function() {
         render();
    };
 
+    var remove_last_node = function() {
+        nodes.splice(-1, 1);
+        render();
+    };
+
     var render = function() {
         var number_of_groups = Math.ceil(nodes.length / 4);
         var g = c.groups(number_of_groups).groups();
@@ -78,6 +88,7 @@ var grouper = function() {
     }
     return {nodes: nodes,
             add_node: add_node,
+            remove_last_node: remove_last_node,
             dimensions: dimensions,
             shrink: c.shrink,
             groups: c.groups,
@@ -193,6 +204,7 @@ var vis = function(root) {
                       .on("drag", dragged)
                       .on("end", dragended));
 
+        var nodes_exit = nodes_select.exit().remove();
         var radius = 20;
         var circles_enter = nodes_enter
                 .append("circle")
@@ -247,7 +259,11 @@ var vis = function(root) {
                 modal.style("display", "none");
             }
         });
-
+    root.select(".undo")
+        .on("click", function() {
+            g.remove_last_node();
+            render();
+        });
     window.addEventListener("resize", render);
     window.addEventListener("load", render);
     return {shrink: g.shrink};
@@ -267,10 +283,13 @@ function create_component(parent, id) {
         .attr("type", "text");
     root.append("div")
         .attr("class", "modal");
-     root.append("a")
+    root.append("a")
         .attr("class", "footer")
         .text("list");
-   root
+    root.append("a")
+        .attr("class", "undo")
+        .text("undo");
+    root
         .append("svg")
         .attr("id", id)
         .style("width", "100%")
