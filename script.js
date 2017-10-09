@@ -197,8 +197,8 @@ var vis = function(root) {
             .on("tick", tick);
 
     var render = function () {
-        var width = get_svg(root, "width");
-        var height = get_svg(root, "height");
+        var width = get_svg_rect(root).width;
+        var height = get_svg_rect(root).height;
         g.dimensions(width, height);
         var nodes_select = svg.selectAll(".node")
                 .data(g.nodes);
@@ -282,8 +282,8 @@ var vis = function(root) {
     return {shrink: g.shrink};
 };
 
-function get_svg(root, style) {
-    return parseInt(root.select('svg').style(style));
+function get_svg_rect(root, style) {
+    return root.select('svg').node().getBoundingClientRect();
 }
 
 function create_component(parent, id) {
@@ -316,7 +316,7 @@ vis(root).shrink(0.7);
 
 QUnit.test( "hello test", function( assert ) {
     var root = d3.select('#main');
-    assert.ok(!isNaN(get_svg(root, "width")));
+    assert.ok(!isNaN(get_svg_rect(root).width));
 });
 
 QUnit.test("Data-binding", function(assert) {
